@@ -4,6 +4,7 @@ import com.dineshmane.accounts.constants.AccountsConstants;
 import com.dineshmane.accounts.dto.CustomerDto;
 import com.dineshmane.accounts.entity.Accounts;
 import com.dineshmane.accounts.entity.Customer;
+import com.dineshmane.accounts.exception.CustomerAlreadyExistsException;
 import com.dineshmane.accounts.mapper.CustomerMapper;
 import com.dineshmane.accounts.repository.AccountsRepository;
 import com.dineshmane.accounts.repository.CustomerRepository;
@@ -11,6 +12,8 @@ import com.dineshmane.accounts.service.IAccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -23,6 +26,12 @@ public class AccountsServiceImpl implements IAccountService {
     @Override
     public void createAccount(CustomerDto customerDto) {
         Customer customer = CustomerMapper.mapToCustomer(customerDto, new Customer());
+        Optional<Customer> optionalCustomer = customerRepository.findByMobileNumber(customerDto.getMobileNumber());
+        if (optionalCustomer.isPresent()){
+            throw new CustomerAlreadyExistsException("Customer already registered with given mobile number: "+ customerDto.getMobileNumber());
+        }
+        customer.setCreatedAt(LocalDateTime.now());
+        customer.setCreatedBy("Anonymous");
         Customer savedCustomer = customerRepository.save(customer);
         accountsRepository.save(createNewAccount(savedCustomer));
     }
@@ -35,6 +44,8 @@ public class AccountsServiceImpl implements IAccountService {
         newAccount.setAccountNumber(randomAccountNumber);
         newAccount.setAccountType(AccountsConstants.SAVINGS);
         newAccount.setBranchAddress(AccountsConstants.ADDRESS);
+        newAccount.setCreatedAt(LocalDateTime.now());
+        newAccount.setCreatedBy("Anonymous");
         return newAccount;
     }
 }
