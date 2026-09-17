@@ -1,10 +1,13 @@
 package com.dineshmane.accounts.serviceImpl;
 
 import com.dineshmane.accounts.constants.AccountsConstants;
+import com.dineshmane.accounts.dto.AccountsDto;
 import com.dineshmane.accounts.dto.CustomerDto;
 import com.dineshmane.accounts.entity.Accounts;
 import com.dineshmane.accounts.entity.Customer;
 import com.dineshmane.accounts.exception.CustomerAlreadyExistsException;
+import com.dineshmane.accounts.exception.ResourceNotFoundException;
+import com.dineshmane.accounts.mapper.AccountsMapper;
 import com.dineshmane.accounts.mapper.CustomerMapper;
 import com.dineshmane.accounts.repository.AccountsRepository;
 import com.dineshmane.accounts.repository.CustomerRepository;
@@ -47,5 +50,18 @@ public class AccountsServiceImpl implements IAccountService {
         newAccount.setCreatedAt(LocalDateTime.now());
         newAccount.setCreatedBy("Anonymous");
         return newAccount;
+    }
+
+    @Override
+    public CustomerDto fetchAccount(String mobileNumber) {
+        Customer customer = customerRepository.findByMobileNumber(mobileNumber).orElseThrow(
+                () -> new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber)
+        );
+        Accounts accounts = accountsRepository.findByCustomerId(customer.getCustomerId()).orElseThrow(
+                () -> new ResourceNotFoundException("Account", "CustomerId", customer.getCustomerId().toString())
+        );
+        CustomerDto customerDto = CustomerMapper.mapToCustomerDto(customer, new CustomerDto());
+        customerDto.setAccountsDto(AccountsMapper.mapToAccountsDto(accounts, new AccountsDto()));
+        return customerDto;
     }
 }
