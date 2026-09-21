@@ -2,8 +2,11 @@ package com.dineshmane.cards.serviceImpl;
 
 import com.dineshmane.cards.Repository.CardsRepository;
 import com.dineshmane.cards.constants.CardsConstants;
+import com.dineshmane.cards.dto.CardsDto;
 import com.dineshmane.cards.entity.Cards;
 import com.dineshmane.cards.exception.CardAlreadyExistsException;
+import com.dineshmane.cards.exception.ResourceNotFoundException;
+import com.dineshmane.cards.mapper.CardsMapper;
 import com.dineshmane.cards.service.ICardsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,5 +39,14 @@ public class CardsServiceImpl implements ICardsService {
         newCard.setAmountUsed(0);
         newCard.setAvailableAmount(CardsConstants.NEW_CARD_LIMIT);
         return newCard;
+    }
+
+    @Override
+    public CardsDto fetchCard(String mobileNumber) {
+
+        Cards cards = cardsRepository.findByMobileNumber(mobileNumber).orElseThrow(
+                ()-> new ResourceNotFoundException("Card", "mobileNumber", mobileNumber)
+        );
+        return CardsMapper.mapToCardsDto(cards, new CardsDto());
     }
 }
