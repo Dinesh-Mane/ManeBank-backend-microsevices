@@ -4,28 +4,25 @@ import com.dineshmane.cards.constants.CardsConstants;
 import com.dineshmane.cards.dto.CardsDto;
 import com.dineshmane.cards.dto.ResponseDto;
 import com.dineshmane.cards.service.ICardsService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "/api", produces = {MediaType.APPLICATION_JSON_VALUE})
 @RequiredArgsConstructor
+@Validated
 public class CardsController {
 
     private final ICardsService cardsService;
 
-    // for sanity check
-    @GetMapping("/hello")
-    public ResponseEntity<String> sayHello(){
-        return ResponseEntity.status(HttpStatus.OK).body("Hello Dinesh Mane !!!");
-    }
-
-
     @PostMapping("/create")
-    public ResponseEntity<ResponseDto> createCard(@RequestParam("mobileNumber") String mobileNo){
+    public ResponseEntity<ResponseDto> createCard(@RequestParam("mobileNumber") @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile Number must be 10 digits") String mobileNo){
         cardsService.createCard(mobileNo);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -33,7 +30,7 @@ public class CardsController {
     }
 
     @GetMapping("/fetch")
-    public ResponseEntity<CardsDto> fetchCardsDetails(@RequestParam String mobileNumber){
+    public ResponseEntity<CardsDto> fetchCardsDetails(@RequestParam @Pattern(regexp = "(^$|[0-9]{10})", message = "Mobile Number must be 10 digits") String mobileNumber){
         CardsDto cardsDto = cardsService.fetchCard(mobileNumber);
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -41,7 +38,7 @@ public class CardsController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ResponseDto> updateCardDetails(@RequestBody CardsDto cardsDto){
+    public ResponseEntity<ResponseDto> updateCardDetails(@Valid @RequestBody CardsDto cardsDto){
         boolean isUpdated =  cardsService.updateCard(cardsDto);
         if (isUpdated){
             return ResponseEntity
@@ -55,7 +52,7 @@ public class CardsController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<ResponseDto> deleteCard(@RequestParam String mobileNumber){
+    public ResponseEntity<ResponseDto> deleteCard(@RequestParam @Pattern(regexp="(^$|[0-9]{10})",message = "Mobile number must be 10 digits") String mobileNumber){
         boolean isDeleted = cardsService.deleteCard(mobileNumber);
         if (isDeleted){
             return ResponseEntity
